@@ -32,6 +32,20 @@ The script will:
 - start `termux-x11` if needed
 - launch `python android/main.py`
 
+If Kivy is missing, the script will show install instructions.
+You can also let it try the Termux package install automatically:
+```bash
+bash android/run_termux_x11.sh --auto-install-kivy
+```
+
+## Termux troubleshooting: `pip install kivy` build failure
+On Termux, `pip install kivy` may fail because it tries to compile from source.
+Prefer the prebuilt Termux package instead:
+```bash
+pkg install x11-repo
+pkg install python-kivy
+```
+
 ## Build APK (Linux)
 1. Install Buildozer prerequisites.
 2. Copy example spec:
