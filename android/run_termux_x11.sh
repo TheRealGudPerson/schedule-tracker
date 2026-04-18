@@ -31,6 +31,9 @@ fi
 if ! python -c "import kivy" >/dev/null 2>&1; then
   echo "[ERROR] Kivy is not installed for this Termux Python environment." >&2
   echo "" >&2
+  echo "Fastest workaround (no Kivy required):" >&2
+  echo "  bash android/run_termux_web.sh" >&2
+  echo "" >&2
   echo "Recommended (Termux package, avoids pip source-build issues):" >&2
   echo "  pkg install x11-repo" >&2
   echo "  pkg install python-kivy" >&2
