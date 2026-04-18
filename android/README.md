@@ -31,6 +31,7 @@ bash android/run_termux_web.sh
 ```
 
 This starts a local server at `http://127.0.0.1:8765` and opens it in your browser.
+On first run, if `schedules_android.json` is missing, it will bootstrap from repository `sample_schedules.json`.
 
 ### Kivy launcher (optional)
 Use the Kivy helper script from repo root:

@@ -18,6 +18,7 @@ from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
 DATA_PATH = Path("schedules_android.json")
+SAMPLE_PATH = Path("sample_schedules.json")
 HOST = "127.0.0.1"
 PORT = 8765
 TIME_PATTERN = re.compile(r"^([0-1]?\d|2[0-3]):([0-5]\d)$")
@@ -71,6 +72,14 @@ def load_data() -> dict:
     if DATA_PATH.exists():
         try:
             return normalize_data(json.loads(DATA_PATH.read_text(encoding="utf-8")))
+        except Exception:
+            pass
+    # First-run fallback: bootstrap from repository sample file if present.
+    if SAMPLE_PATH.exists():
+        try:
+            sample = normalize_data(json.loads(SAMPLE_PATH.read_text(encoding="utf-8")))
+            save_data(sample)
+            return sample
         except Exception:
             pass
     return {"schedules": [{"name": "Default", "source_schedules": [], "classes": []}]}
