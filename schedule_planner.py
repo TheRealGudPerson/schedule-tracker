@@ -24,6 +24,7 @@ REQUIRED_CLASS_KEYS = [
     "teacher",
     "credits",
 ]
+REQUIRED_MEETING_KEYS = ["days", "start_time", "end_time", "location"]
 
 
 @dataclass
@@ -79,12 +80,43 @@ def classes_overlap(a: dict, b: dict) -> bool:
     return a_start < b_end and b_start < a_end
 
 
+def normalize_meeting_entry(raw: dict, fallback_location: str = "") -> dict:
+    item = dict(raw or {})
+    days = item.get("days", [])
+    if not isinstance(days, list):
+        days = []
+    return {
+        "days": [d for d in days if d in DAY_ORDER],
+        "start_time": normalize_time_string(item.get("start_time")) or "00:00",
+        "end_time": normalize_time_string(item.get("end_time")) or "00:00",
+        "location": str(item.get("location", fallback_location)).strip(),
+    }
+
+
+def expand_class_meetings(class_item: dict) -> list[dict]:
+    meetings = class_item.get("meetings")
+    if isinstance(meetings, list) and meetings:
+        expanded = [normalize_meeting_entry(m, class_item.get("location", "")) for m in meetings if isinstance(m, dict)]
+    else:
+        expanded = [
+            normalize_meeting_entry(
+                {
+                    "days": class_item.get("days", []),
+                    "start_time": class_item.get("start_time", "00:00"),
+                    "end_time": class_item.get("end_time", "00:00"),
+                    "location": class_item.get("location", ""),
+                }
+            )
+        ]
+    return expanded
+
+
 def find_conflicting_indices(classes: list[dict]) -> set[int]:
     conflicts: set[int] = set()
     for i in range(len(classes)):
         for j in range(i + 1, len(classes)):
             try:
-                if classes_overlap(classes[i], classes[j]):
+                if class_items_overlap(classes[i], classes[j]):
                     conflicts.add(i)
                     conflicts.add(j)
             except Exception:
@@ -157,6 +189,12 @@ def normalize_class_entry(raw: dict) -> dict:
     except Exception:
         normalized["credits"] = 0
 
+    raw_meetings = item.get("meetings")
+    if isinstance(raw_meetings, list) and raw_meetings:
+        normalized["meetings"] = [normalize_meeting_entry(m, normalized["location"]) for m in raw_meetings if isinstance(m, dict)]
+    else:
+        normalized["meetings"] = expand_class_meetings(normalized)
+
     if "_color" in item and item["_color"]:
         normalized["_color"] = item["_color"]
     return normalized
@@ -196,6 +234,14 @@ def normalize_data_model(data: dict) -> dict:
 def location_or_na(class_item: dict) -> str:
     location = str(class_item.get("location", "")).strip()
     return location if location else "N/A"
+
+
+def class_items_overlap(a: dict, b: dict) -> bool:
+    for ma in expand_class_meetings(a):
+        for mb in expand_class_meetings(b):
+            if classes_overlap(ma, mb):
+                return True
+    return False
 
 
 class AddClassDialog(tk.Toplevel):
@@ -375,14 +421,16 @@ class SchedulePlannerApp:
 
         for idx, c in enumerate(classes, start=1):
             credits_total += int(c.get("credits", 0))
-            days = " ".join(c.get("days", []))
-            start_ampm = hhmm_to_ampm(c["start_time"])
-            end_ampm = hhmm_to_ampm(c["end_time"])
+            meetings = expand_class_meetings(c)
+            meeting_lines = []
+            for m in meetings:
+                days = " ".join(m.get("days", [])) or "N/A"
+                start_ampm = hhmm_to_ampm(m["start_time"])
+                end_ampm = hhmm_to_ampm(m["end_time"])
+                meeting_lines.append(f"   Meeting: {days} | {start_ampm} - {end_ampm} | {location_or_na(m)}")
             lines.append(
                 f"{idx}. {c.get('class_name')} ({c.get('section')})\n"
-                f"   Days: {days}\n"
-                f"   Time: {start_ampm} - {end_ampm}\n"
-                f"   Location: {c.get('location')}\n"
+                + "\n".join(meeting_lines) + "\n"
                 f"   Instructor: {c.get('teacher')}\n"
                 f"   Credits: {c.get('credits')}\n\n"
             )
@@ -433,17 +481,27 @@ class SchedulePlannerApp:
         classes = schedule.get("classes", [])
         conflicts = find_conflicting_indices(classes)
         day_to_idx = {d: i for i, d in enumerate(DAY_ORDER)}
-        day_layouts = {day: compute_day_side_by_side_layout(classes, day) for day in DAY_ORDER}
+        expanded_blocks = []
+        for class_idx, cls in enumerate(classes):
+            for meeting in expand_class_meetings(cls):
+                block = dict(meeting)
+                block["_class_idx"] = class_idx
+                block["_class_ref"] = cls
+                expanded_blocks.append(block)
 
-        for idx, cls in enumerate(classes):
-            start = time_to_minutes(cls["start_time"])
-            end = time_to_minutes(cls["end_time"])
-            for day in cls.get("days", []):
+        day_layouts = {day: compute_day_side_by_side_layout(expanded_blocks, day) for day in DAY_ORDER}
+
+        for block_idx, meeting in enumerate(expanded_blocks):
+            cls = meeting["_class_ref"]
+            class_idx = meeting["_class_idx"]
+            start = time_to_minutes(meeting["start_time"])
+            end = time_to_minutes(meeting["end_time"])
+            for day in meeting.get("days", []):
                 if day not in day_to_idx:
                     continue
                 day_index = day_to_idx[day]
                 placements, cluster_widths = day_layouts[day]
-                slot, cluster = placements.get(idx, (0, 0))
+                slot, cluster = placements.get(block_idx, (0, 0))
                 slot_count = max(cluster_widths.get(cluster, 1), 1)
                 usable_w = lay.day_col_w - 4
                 slot_w = usable_w / slot_count
@@ -460,13 +518,13 @@ class SchedulePlannerApp:
                 if y1 <= y0:
                     continue
 
-                fill = "#ff7b7b" if idx in conflicts else cls.get("_color", "#b7d8ff")
+                fill = "#ff7b7b" if class_idx in conflicts else cls.get("_color", "#b7d8ff")
                 self.canvas.create_rectangle(x0, y0, x1, y1, fill=fill, outline="black")
                 label = (
                     f"{cls.get('class_name')}\n"
                     f"{cls.get('section')}\n"
-                    f"{hhmm_to_ampm(cls['start_time'])}-{hhmm_to_ampm(cls['end_time'])}\n"
-                    f"{location_or_na(cls)}"
+                    f"{hhmm_to_ampm(meeting['start_time'])}-{hhmm_to_ampm(meeting['end_time'])}\n"
+                    f"{location_or_na(meeting)}"
                 )
                 self.canvas.create_text((x0 + x1) / 2, (y0 + y1) / 2, text=label, font=("Arial", 8), width=max(20, slot_w - 6))
 
@@ -606,7 +664,7 @@ class SchedulePlannerApp:
                 return
             cname = class_names[i]
             for section_bundle in grouped[cname].values():
-                if any(classes_overlap(option, existing) for option in section_bundle for existing in current):
+                if any(class_items_overlap(option, existing) for option in section_bundle for existing in current):
                     continue
                 current.extend(section_bundle)
                 backtrack(i + 1, current)
@@ -650,7 +708,7 @@ class SchedulePlannerApp:
         adjacency = {i: set() for i in range(n)}
         for i in range(n):
             for j in range(i + 1, n):
-                if classes_overlap(classes[i], classes[j]):
+                if class_items_overlap(classes[i], classes[j]):
                     adjacency[i].add(j)
                     adjacency[j].add(i)
 
@@ -813,10 +871,20 @@ class SchedulePlannerApp:
         conflicts = find_conflicting_indices(classes)
         day_to_idx = {d: i for i, d in enumerate(DAY_ORDER)}
 
-        for idx, cls in enumerate(classes):
-            start = time_to_minutes(cls["start_time"])
-            end = time_to_minutes(cls["end_time"])
-            for d in cls.get("days", []):
+        expanded_blocks = []
+        for class_idx, cls in enumerate(classes):
+            for meeting in expand_class_meetings(cls):
+                block = dict(meeting)
+                block["_class_idx"] = class_idx
+                block["_class_ref"] = cls
+                expanded_blocks.append(block)
+
+        for meeting in expanded_blocks:
+            cls = meeting["_class_ref"]
+            class_idx = meeting["_class_idx"]
+            start = time_to_minutes(meeting["start_time"])
+            end = time_to_minutes(meeting["end_time"])
+            for d in meeting.get("days", []):
                 if d not in day_to_idx:
                     continue
                 d_idx = day_to_idx[d]
@@ -832,7 +900,7 @@ class SchedulePlannerApp:
                 if y0 <= y1:
                     continue
 
-                color_hex = "#ff7b7b" if idx in conflicts else cls.get("_color", "#b7d8ff")
+                color_hex = "#ff7b7b" if class_idx in conflicts else cls.get("_color", "#b7d8ff")
                 try:
                     fill = colors.HexColor(color_hex)
                 except Exception:
@@ -846,8 +914,8 @@ class SchedulePlannerApp:
                 c.setFont("Helvetica", 7)
                 text = (
                     f"{cls.get('class_name')} ({cls.get('section')})\n"
-                    f"{hhmm_to_ampm(cls['start_time'])}-{hhmm_to_ampm(cls['end_time'])}\n"
-                    f"{location_or_na(cls)}"
+                    f"{hhmm_to_ampm(meeting['start_time'])}-{hhmm_to_ampm(meeting['end_time'])}\n"
+                    f"{location_or_na(meeting)}"
                 )
                 tx = c.beginText(x0 + 3, y0 - 10)
                 for line in text.split("\n"):

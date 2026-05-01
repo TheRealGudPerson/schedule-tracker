@@ -16,7 +16,26 @@
                     "end_time": "09:50",
                     "location": "HUM 101",
                     "teacher": "Dr. Carter",
-                    "credits": 3
+                    "credits": 3,
+                    "meetings": [
+                        {
+                            "days": [
+                                "M",
+                                "W"
+                            ],
+                            "start_time": "09:00",
+                            "end_time": "09:50",
+                            "location": "HUM 101"
+                        },
+                        {
+                            "days": [
+                                "F"
+                            ],
+                            "start_time": "10:00",
+                            "end_time": "10:50",
+                            "location": "HUM 220"
+                        }
+                    ]
                 },
                 {
                     "class_name": "MAC2311",
@@ -74,7 +93,25 @@
                     "location": "CS 115",
                     "teacher": "Prof. Lee",
                     "credits": 3,
-                    "_color": "#ffe7c2"
+                    "_color": "#ffe7c2",
+                    "meetings": [
+                        {
+                            "days": [
+                                "M"
+                            ],
+                            "start_time": "13:00",
+                            "end_time": "14:15",
+                            "location": "CS 115"
+                        },
+                        {
+                            "days": [
+                                "W"
+                            ],
+                            "start_time": "15:00",
+                            "end_time": "16:15",
+                            "location": "CS 115"
+                        }
+                    ]
                 }
             ]
         }
