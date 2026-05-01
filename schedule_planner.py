@@ -65,7 +65,7 @@ def minutes_to_ampm(total_minutes: int) -> str:
     display_hour = hour % 12
     if display_hour == 0:
         display_hour = 12
-    return f"{display_hour}:{minute:02d} {suffix}"
+    return f"{display_hour:02d}:{minute:02d} {suffix}"
 
 
 def hhmm_to_ampm(value: str) -> str:
@@ -485,7 +485,7 @@ class SchedulePlannerApp:
             self.canvas.create_line(0, y, w, y, fill="#ddd")
             minutes = hr * 60
             self.canvas.create_text(
-                lay.time_col_w / 2,
+                lay.time_col_w - 6,
                 y,
                 text=minutes_to_ampm(minutes),
                 font=("Arial", 9),
