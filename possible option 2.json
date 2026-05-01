@@ -1,0 +1,154 @@
+{
+    "schedules": [
+        {
+            "name": "Summer 2026 (Conflict Free)",
+            "source_schedules": [],
+            "classes": [
+                {
+                    "class_name": "MAD2104",
+                    "section": "0005",
+                    "days": [],
+                    "start_time": "00:00",
+                    "end_time": "00:00",
+                    "location": "Online",
+                    "teacher": "Brian Ewald",
+                    "credits": 3,
+                    "meetings": [
+                        {
+                            "days": [],
+                            "start_time": "00:00",
+                            "end_time": "00:00",
+                            "location": "Online"
+                        }
+                    ]
+                },
+                {
+                    "class_name": "PHY2049C",
+                    "section": "0002",
+                    "days": ["M", "T", "W", "Th"],
+                    "start_time": "08:00",
+                    "end_time": "09:15",
+                    "location": "UPL 0101",
+                    "teacher": "",
+                    "credits": 5,
+                    "meetings": [
+                        {
+                            "days": ["M", "T", "W", "Th"],
+                            "start_time": "08:00",
+                            "end_time": "09:15",
+                            "location": "UPL 0101"
+                        },
+                        {
+                            "days": ["T"],
+                            "start_time": "13:00",
+                            "end_time": "16:00",
+                            "location": "MCH 0315"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "Fall 2026 (Conflict Free)",
+            "source_schedules": ["Summer 2026 (Conflict Free)"],
+            "classes": [
+                {
+                    "class_name": "CIS3250",
+                    "section": "0005",
+                    "days": [],
+                    "start_time": "00:00",
+                    "end_time": "00:00",
+                    "location": "Online",
+                    "teacher": "Brent Gann",
+                    "credits": 3,
+                    "meetings": [
+                        {
+                            "days": [],
+                            "start_time": "00:00",
+                            "end_time": "00:00",
+                            "location": "Online"
+                        }
+                    ]
+                },
+                {
+                    "class_name": "EEL3002L",
+                    "section": "0003",
+                    "days": ["T", "F"],
+                    "start_time": "15:30",
+                    "end_time": "16:45",
+                    "location": "Southwest Engineering",
+                    "teacher": "Tejal Mulay",
+                    "credits": 2,
+                    "meetings": [
+                        {
+                            "days": ["T"],
+                            "start_time": "15:30",
+                            "end_time": "16:45",
+                            "location": "Southwest Engineering"
+                        },
+                        {
+                            "days": ["F"],
+                            "start_time": "09:00",
+                            "end_time": "11:45",
+                            "location": "Southwest Engineering"
+                        }
+                    ]
+                },
+                {
+                    "class_name": "EEL3003",
+                    "section": "0003",
+                    "days": ["T", "Th"],
+                    "start_time": "14:00",
+                    "end_time": "15:15",
+                    "location": "",
+                    "teacher": "",
+                    "credits": 3
+                },
+                {
+                    "class_name": "MAP2302",
+                    "section": "0006",
+                    "days": ["T", "Th"],
+                    "start_time": "16:50",
+                    "end_time": "18:05",
+                    "location": "HCB 0216",
+                    "teacher": "",
+                    "credits": 3
+                },
+                {
+                    "class_name": "EEL3705",
+                    "section": "0002",
+                    "days": ["T", "Th"],
+                    "start_time": "09:30",
+                    "end_time": "10:45",
+                    "location": "",
+                    "teacher": "Amod Agashe",
+                    "credits": 3
+                },
+                {
+                    "class_name": "COP3330",
+                    "section": "0004",
+                    "days": ["M", "W", "Th"],
+                    "start_time": "11:35",
+                    "end_time": "12:25",
+                    "location": "MCH 0202",
+                    "teacher": "",
+                    "credits": 3,
+                    "meetings": [
+                        {
+                            "days": ["M", "W"],
+                            "start_time": "11:35",
+                            "end_time": "12:25",
+                            "location": "MCH 0202"
+                        },
+                        {
+                            "days": ["Th"],
+                            "start_time": "11:35",
+                            "end_time": "12:25",
+                            "location": "MCH 0202"
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}
