@@ -408,12 +408,15 @@ class SchedulePlannerApp:
     def update_text_panel(self):
         schedule = self.get_selected_schedule()
         self.text.delete("1.0", tk.END)
+        self.text.tag_configure("online_header", background="#fff3bf", foreground="#7a5200", font=("Arial", 10, "bold"))
         if not schedule:
             self.text.insert(tk.END, "No schedule selected.")
             return
 
         classes = schedule.get("classes", [])
         credits_total = 0
+        in_person_lines = []
+        online_lines = []
         lines = [f"Schedule: {schedule.get('name', 'Untitled')}\n"]
         if schedule.get("source_schedules"):
             lines.append(f"Source schedules: {', '.join(schedule['source_schedules'])}\n")
@@ -428,15 +431,30 @@ class SchedulePlannerApp:
                 start_ampm = hhmm_to_ampm(m["start_time"])
                 end_ampm = hhmm_to_ampm(m["end_time"])
                 meeting_lines.append(f"   Meeting: {days} | {start_ampm} - {end_ampm} | {location_or_na(m)}")
-            lines.append(
+            rendered = (
                 f"{idx}. {c.get('class_name')} ({c.get('section')})\n"
                 + "\n".join(meeting_lines) + "\n"
                 f"   Instructor: {c.get('teacher')}\n"
                 f"   Credits: {c.get('credits')}\n\n"
             )
+            is_online = all((not m.get("days")) and m.get("start_time") == "00:00" and m.get("end_time") == "00:00" for m in meetings)
+            if is_online:
+                online_lines.append(rendered)
+            else:
+                in_person_lines.append(rendered)
 
+        lines.append("In-Person Classes\n")
+        lines.append("".join(in_person_lines) if in_person_lines else "None\n\n")
+        lines.append("ONLINE CLASSES (Highlighted)\n")
+        lines.append("".join(online_lines) if online_lines else "None\n")
         lines.append(f"Total Credits: {credits_total}\n")
-        self.text.insert(tk.END, "".join(lines))
+        content = "".join(lines)
+        self.text.insert(tk.END, content)
+        marker = "ONLINE CLASSES (Highlighted)"
+        start_idx = self.text.search(marker, "1.0", tk.END)
+        if start_idx:
+            end_idx = f"{start_idx}+{len(marker)}c"
+            self.text.tag_add("online_header", start_idx, end_idx)
 
     def draw_grid(self):
         self.canvas.delete("all")
