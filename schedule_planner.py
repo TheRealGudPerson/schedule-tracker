@@ -358,6 +358,7 @@ class SchedulePlannerApp:
             ("Delete", self.delete_schedule),
             ("Add Class", self.open_add_class_dialog),
             ("Combine", self.combine_schedules),
+            ("Compare", self.compare_schedules_window),
             ("Merge Overlaps", self.merge_overlaps),
             ("Smart Generate", self.smart_generate),
             ("Save JSON", self.save_json),
@@ -498,6 +499,7 @@ class SchedulePlannerApp:
 
         classes = schedule.get("classes", [])
         conflicts = find_conflicting_indices(classes)
+        is_comparison_schedule = str(schedule.get("name", "")).startswith("comparison_pair_")
         day_to_idx = {d: i for i, d in enumerate(DAY_ORDER)}
         expanded_blocks = []
         for class_idx, cls in enumerate(classes):
@@ -536,7 +538,7 @@ class SchedulePlannerApp:
                 if y1 <= y0:
                     continue
 
-                fill = "#ff7b7b" if class_idx in conflicts else cls.get("_color", "#b7d8ff")
+                fill = cls.get("_color", "#b7d8ff") if is_comparison_schedule else ("#ff7b7b" if class_idx in conflicts else cls.get("_color", "#b7d8ff"))
                 self.canvas.create_rectangle(x0, y0, x1, y1, fill=fill, outline="black")
                 label = (
                     f"{cls.get('class_name')}\n"
@@ -658,6 +660,161 @@ class SchedulePlannerApp:
             win.destroy()
 
         ttk.Button(win, text="Combine", command=submit).grid(row=3, column=0, columnspan=2, pady=8)
+        win.grab_set()
+
+    def compare_schedules_window(self):
+        win = tk.Toplevel(self.root)
+        win.title("Compare Schedules")
+        win.resizable(False, False)
+
+        file1_var = tk.StringVar(value="")
+        file2_var = tk.StringVar(value="")
+        data1: dict = {"schedules": []}
+        data2: dict = {"schedules": []}
+        names1: list[str] = []
+        names2: list[str] = []
+
+        pair_rows: list[dict] = []
+        pairs_container = ttk.Frame(win)
+
+        def refresh_pair_labels():
+            for i, pair in enumerate(pair_rows, start=1):
+                pair["label"].configure(text=f"Pair {i}")
+
+        def remove_pair_row(pair_ref: dict):
+            if len(pair_rows) <= 1:
+                messagebox.showinfo("Compare", "At least one pairing must remain active.")
+                return
+            pair_ref["frame"].destroy()
+            pair_rows.remove(pair_ref)
+            refresh_pair_labels()
+
+        def add_pair_row(default_index: int | None = None):
+            pair_no = len(pair_rows) + 1
+            row = ttk.Frame(pairs_container)
+            row.pack(fill="x", pady=3)
+            label = ttk.Label(row, text=f"Pair {pair_no}")
+            label.pack(side="left", padx=(0, 6))
+            left_var = tk.StringVar(value="")
+            right_var = tk.StringVar(value="")
+            left_combo = ttk.Combobox(row, textvariable=left_var, state="readonly", width=24)
+            right_combo = ttk.Combobox(row, textvariable=right_var, state="readonly", width=24)
+            left_combo.pack(side="left", padx=4)
+            ttk.Label(row, text="vs").pack(side="left")
+            right_combo.pack(side="left", padx=4)
+            pair_ref = {
+                "frame": row,
+                "label": label,
+                "left": left_var,
+                "right": right_var,
+                "left_combo": left_combo,
+                "right_combo": right_combo,
+            }
+            remove_btn = tk.Button(row, text="X", fg="red", width=2, command=lambda: remove_pair_row(pair_ref))
+            remove_btn.pack(side="left", padx=(4, 0))
+            pair_ref["remove_btn"] = remove_btn
+            pair_rows.append(pair_ref)
+            refresh_pair_labels()
+
+            if names1:
+                left_combo["values"] = names1
+                left_var.set(names1[min(default_index or 0, len(names1) - 1)])
+            if names2:
+                right_combo["values"] = names2
+                right_var.set(names2[min(default_index or 0, len(names2) - 1)])
+
+        def pick_file(target: int):
+            path = filedialog.askopenfilename(filetypes=[("JSON", "*.json")])
+            if not path:
+                return
+            try:
+                with open(path, "r", encoding="utf-8") as f:
+                    loaded = normalize_data_model(json.load(f))
+                local_names = [s.get("name", "Untitled") for s in loaded.get("schedules", [])]
+                if not local_names:
+                    raise ValueError("No schedules found in file.")
+                if target == 1:
+                    file1_var.set(path)
+                    data1["schedules"] = loaded["schedules"]
+                    names1.clear()
+                    names1.extend(local_names)
+                    for i, pair in enumerate(pair_rows):
+                        pair["left_combo"]["values"] = names1
+                        pair["left"].set(names1[min(i, len(names1) - 1)])
+                else:
+                    file2_var.set(path)
+                    data2["schedules"] = loaded["schedules"]
+                    names2.clear()
+                    names2.extend(local_names)
+                    for i, pair in enumerate(pair_rows):
+                        pair["right_combo"]["values"] = names2
+                        pair["right"].set(names2[min(i, len(names2) - 1)])
+            except Exception as exc:
+                messagebox.showerror("Load Error", str(exc))
+
+        ttk.Label(win, text="JSON File 1").grid(row=0, column=0, padx=8, pady=6, sticky="w")
+        ttk.Entry(win, textvariable=file1_var, width=48).grid(row=0, column=1, padx=8, pady=6)
+        ttk.Button(win, text="Browse", command=lambda: pick_file(1)).grid(row=0, column=2, padx=8, pady=6)
+
+        ttk.Label(win, text="JSON File 2").grid(row=1, column=0, padx=8, pady=6, sticky="w")
+        ttk.Entry(win, textvariable=file2_var, width=48).grid(row=1, column=1, padx=8, pady=6)
+        ttk.Button(win, text="Browse", command=lambda: pick_file(2)).grid(row=1, column=2, padx=8, pady=6)
+
+        ttk.Label(win, text="Comparison Pairs (File1 schedule vs File2 schedule)").grid(row=2, column=0, columnspan=3, padx=8, pady=(12, 4), sticky="w")
+        pairs_container.grid(row=3, column=0, columnspan=3, padx=8, pady=4, sticky="w")
+        add_pair_row(default_index=0)
+        add_pair_row(default_index=1)
+        ttk.Button(win, text="Add Pair", command=lambda: add_pair_row(default_index=len(pair_rows))).grid(row=4, column=0, padx=8, pady=6, sticky="w")
+
+        def make_comparison_schedule(left: dict, right: dict, name: str) -> dict:
+            left_classes = copy.deepcopy(left.get("classes", []))
+            right_classes = copy.deepcopy(right.get("classes", []))
+
+            for c in left_classes:
+                c["_color"] = "#a9f5a9" if any(class_items_overlap(c, r) for r in right_classes) else "#ff9e9e"
+            for c in right_classes:
+                c["_color"] = "#a9f5a9" if any(class_items_overlap(c, l) for l in left_classes) else "#ff9e9e"
+
+            return {
+                "name": name,
+                "source_schedules": [left.get("name", "left"), right.get("name", "right")],
+                "classes": left_classes + right_classes,
+            }
+
+        def submit():
+            if not file1_var.get() or not file2_var.get():
+                messagebox.showerror("Error", "Please select both JSON files.")
+                return
+            if not pair_rows or not all(p["left"].get() and p["right"].get() for p in pair_rows):
+                messagebox.showerror("Error", "Please select schedules for all comparison pairs.")
+                return
+
+            get1 = {s.get("name"): s for s in data1.get("schedules", [])}
+            get2 = {s.get("name"): s for s in data2.get("schedules", [])}
+
+            created_names = []
+            for pair_index, pair in enumerate(pair_rows, start=1):
+                n1 = pair["left"].get()
+                n2 = pair["right"].get()
+                base_name = f"comparison_pair_{pair_index}"
+                if n1 not in get1 or n2 not in get2:
+                    messagebox.showerror("Error", f"Invalid selection: {n1} vs {n2}")
+                    return
+                new_name = base_name
+                suffix = 2
+                while any(s.get("name") == new_name for s in self.data.get("schedules", [])):
+                    new_name = f"{base_name}_{suffix}"
+                    suffix += 1
+                self.data["schedules"].append(make_comparison_schedule(get1[n1], get2[n2], new_name))
+                created_names.append(new_name)
+
+            self.selected_schedule_name.set(created_names[0])
+            self.refresh_schedule_dropdown()
+            self.redraw_views()
+            messagebox.showinfo("Compare", f"Created: {', '.join(created_names)}\nGreen = overlap, Red = no overlap")
+            win.destroy()
+
+        ttk.Button(win, text="Compare", command=submit).grid(row=5, column=0, columnspan=3, pady=12)
         win.grab_set()
 
     def smart_generate(self):
@@ -887,6 +1044,7 @@ class SchedulePlannerApp:
 
         classes = schedule.get("classes", [])
         conflicts = find_conflicting_indices(classes)
+        is_comparison_schedule = str(schedule.get("name", "")).startswith("comparison_pair_")
         day_to_idx = {d: i for i, d in enumerate(DAY_ORDER)}
 
         expanded_blocks = []
@@ -918,7 +1076,7 @@ class SchedulePlannerApp:
                 if y0 <= y1:
                     continue
 
-                color_hex = "#ff7b7b" if class_idx in conflicts else cls.get("_color", "#b7d8ff")
+                color_hex = cls.get("_color", "#b7d8ff") if is_comparison_schedule else ("#ff7b7b" if class_idx in conflicts else cls.get("_color", "#b7d8ff"))
                 try:
                     fill = colors.HexColor(color_hex)
                 except Exception:
