@@ -1,0 +1,96 @@
+{
+  "schedules": [
+    {
+      "name": "r sum26",
+      "source_schedules": [],
+      "classes": [
+        {
+          "class_name": "EEL3705",
+          "section": "0001",
+          "days": ["T", "Th"],
+          "start_time": "13:15",
+          "end_time": "14:50",
+          "location": "CE2 B0210",
+          "teacher": "Babak Noroozi",
+          "credits": 3
+        },
+        {
+          "class_name": "MAD2104",
+          "section": "0002",
+          "days": ["M", "W", "F"],
+          "start_time": "13:20",
+          "end_time": "14:35",
+          "location": "LOV 0101",
+          "teacher": "Brian Ewald",
+          "credits": 3
+        },
+        {
+          "class_name": "MAD2104",
+          "section": "0002",
+          "days": ["Th"],
+          "start_time": "15:05",
+          "end_time": "16:40",
+          "location": "MCH 0222",
+          "teacher": "Brian Ewald",
+          "credits": 3
+        }
+      ]
+    },
+        {
+      "name": "z sum26",
+      "source_schedules": [],
+      "classes": [
+        {
+          "class_name": "PHY2048C",
+          "section": "0006",
+          "days": ["M", "W", "Th"],
+          "start_time": "13:20",
+          "end_time": "15:00",
+          "location": "UPL 0101",
+          "teacher": "",
+          "credits": 5
+        },
+        {
+          "class_name": "PHY2048C",
+          "section": "0006",
+          "days": ["Th"],
+          "start_time": "9:30",
+          "end_time": "12:30",
+          "location": "MCH 0315",
+          "teacher": "",
+          "credits": 5
+        },
+        {
+          "class_name": "CHM1046",
+          "section": "0001",
+          "days": ["M", "W", "F"],
+          "start_time": "11:35",
+          "end_time": "12:40",
+          "location": "FLH 0255",
+          "teacher": "Stephanie Dillon",
+          "credits": 0
+        },
+        {
+          "class_name": "CHM1046",
+          "section": "0001",
+          "days": ["M"],
+          "start_time": "16:00",
+          "end_time": "16:50",
+          "location": "HTL 0213",
+          "teacher": "Stephanie Dillon",
+          "credits": 3
+        },
+        {
+          "class_name": "BSC2011L",
+          "section": "0003",
+          "days": ["T"],
+          "start_time": "9:30",
+          "end_time": "12:15",
+          "location": "KIN 1071",
+          "teacher": "Geoffrey Brown, David McNutt",
+          "credits": 1
+        }
+      ]
+    }
+  ]
+}
