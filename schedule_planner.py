@@ -225,6 +225,8 @@ def normalize_data_model(data: dict) -> dict:
         sources = raw_schedule.get("source_schedules")
         if isinstance(sources, list):
             schedule["source_schedules"] = [str(s).strip() for s in sources if str(s).strip()]
+        if raw_schedule.get("is_comparison_pair"):
+            schedule["is_comparison_pair"] = True
         cleaned_schedules.append(schedule)
 
     if not cleaned_schedules:
@@ -342,6 +344,12 @@ class SchedulePlannerApp:
         self.setup_ui()
         self.refresh_schedule_dropdown()
         self.redraw_views()
+
+    @staticmethod
+    def is_comparison_pair_schedule(schedule: dict | None) -> bool:
+        if not schedule:
+            return False
+        return bool(schedule.get("is_comparison_pair")) or str(schedule.get("name", "")).startswith("comparison_pair_")
 
     def setup_ui(self):
         controls = ttk.Frame(self.root)
@@ -473,7 +481,7 @@ class SchedulePlannerApp:
             lines.append(f"Source schedules: {', '.join(schedule['source_schedules'])}\n")
         lines.append("-" * 50 + "\n")
 
-        is_compare_palette = self.compare_alt_mode.get() and str(schedule.get("name", "")).startswith("comparison_pair_")
+        is_compare_palette = self.compare_alt_mode.get() and self.is_comparison_pair_schedule(schedule)
         for idx, c in enumerate(classes, start=1):
             credits_total += int(c.get("credits", 0))
             meetings = expand_class_meetings(c)
@@ -575,7 +583,7 @@ class SchedulePlannerApp:
 
         classes = schedule.get("classes", [])
         conflicts = find_conflicting_indices(classes)
-        is_comparison_schedule = str(schedule.get("name", "")).startswith("comparison_pair_")
+        is_comparison_schedule = self.is_comparison_pair_schedule(schedule)
         use_compare_palette = is_comparison_schedule and self.compare_alt_mode.get()
         use_compare_palette = is_comparison_schedule and self.compare_alt_mode.get()
         day_to_idx = {d: i for i, d in enumerate(DAY_ORDER)}
@@ -860,6 +868,7 @@ class SchedulePlannerApp:
 
             return {
                 "name": name,
+                "is_comparison_pair": True,
                 "source_schedules": [left.get("name", "left"), right.get("name", "right")],
                 "classes": left_classes + right_classes,
             }
@@ -1127,7 +1136,7 @@ class SchedulePlannerApp:
 
         classes = schedule.get("classes", [])
         conflicts = find_conflicting_indices(classes)
-        is_comparison_schedule = str(schedule.get("name", "")).startswith("comparison_pair_")
+        is_comparison_schedule = self.is_comparison_pair_schedule(schedule)
         use_compare_palette = is_comparison_schedule and self.compare_alt_mode.get()
         day_to_idx = {d: i for i, d in enumerate(DAY_ORDER)}
 
