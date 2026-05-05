@@ -1,7 +1,7 @@
 {
   "schedules": [
     {
-      "name": "z sum26",
+      "name": "Zainab Summer 2026",
       "source_schedules": [],
       "classes": [
         {
@@ -13,6 +13,7 @@
           "location": "UPL 0101",
           "teacher": "",
           "credits": 5,
+          "_color": "#fdfd96",
           "meetings": [
             {
               "days": ["M", "W", "Th"],
@@ -37,6 +38,7 @@
           "location": "FLH 0255",
           "teacher": "Stephanie Dillon",
           "credits": 3,
+          "_color": "#fdfd96",
           "meetings": [
             {
               "days": ["M", "W", "F"],
@@ -60,12 +62,13 @@
           "end_time": "12:15",
           "location": "KIN 1071",
           "teacher": "Geoffrey Brown, David McNutt",
+          "_color": "#fdfd96",
           "credits": 1
         }
       ]
     },
     {
-      "name": "Z fall26",
+      "name": "Zainab Fall 2026",
       "source_schedules": [],
       "classes": [
         {
@@ -76,6 +79,7 @@
           "end_time": "15:40",
           "location": "MCH 0315 / UPL 0101",
           "teacher": "Rachel Yohay",
+          "_color": "#fdfd96",
           "credits": 5,
           "meetings": [
             {
@@ -101,6 +105,7 @@
           "location": "HTL 0213",
           "teacher": "Xiangpeng Li",
           "credits": 0,
+          "_color": "#fdfd96",
           "meetings": [
             {
               "days": ["M", "W", "F"],
@@ -119,6 +124,7 @@
           "location": "HTL 0213",
           "teacher": "Xiangpeng Li",
           "credits": 3,
+          "_color": "#fdfd96",
           "meetings": [
             {
               "days": ["F"],
@@ -137,6 +143,7 @@
           "location": "HCB 0209",
           "teacher": "",
           "credits": 5,
+          "_color": "#fdfd96",
           "meetings": [
             {
               "days": ["M", "W"],
@@ -161,6 +168,7 @@
           "location": "HTL 0440",
           "teacher": "Zhitong Greenwell",
           "credits": 1,
+          "_color": "#fdfd96",
           "meetings": [
             {
               "days": ["Th"],

@@ -1085,7 +1085,7 @@ class SchedulePlannerApp:
         margin = 30
         title_y = page_h - margin
         c.setFont("Helvetica-Bold", 16)
-        c.drawCentredString(page_w / 2, title_y, f"Schedule: {schedule.get('name', 'Untitled')}")
+        c.drawCentredString(page_w / 2, title_y, f"{schedule.get('name', 'Untitled')}")
 
         grid_top = title_y - 25
         grid_bottom = margin
@@ -1193,7 +1193,7 @@ class SchedulePlannerApp:
                 c.setFillColor(colors.black)
                 c.setFont("Helvetica", 7)
                 text = (
-                    f"{cls.get('class_name')}" + ("" if use_compare_palette else f" ({cls.get('section')})") + "\n"
+                    f"{cls.get('class_name')}" + "\n"
                     f"{hhmm_to_ampm(meeting['start_time'])}-{hhmm_to_ampm(meeting['end_time'])}\n"
                     f"{location_or_na(meeting)}"
                 )
