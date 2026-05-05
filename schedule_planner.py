@@ -1114,7 +1114,9 @@ class SchedulePlannerApp:
                 block["_class_ref"] = cls
                 expanded_blocks.append(block)
 
-        for meeting in expanded_blocks:
+        day_layouts = {day: compute_day_side_by_side_layout(expanded_blocks, day) for day in DAY_ORDER}
+
+        for block_idx, meeting in enumerate(expanded_blocks):
             cls = meeting["_class_ref"]
             class_idx = meeting["_class_idx"]
             start = time_to_minutes(meeting["start_time"])
@@ -1123,8 +1125,14 @@ class SchedulePlannerApp:
                 if d not in day_to_idx:
                     continue
                 d_idx = day_to_idx[d]
-                x0 = grid_left + time_col_w + d_idx * day_col_w + 2
-                x1 = x0 + day_col_w - 4
+                placements, cluster_widths = day_layouts[d]
+                slot, cluster = placements.get(block_idx, (0, 0))
+                slot_count = max(cluster_widths.get(cluster, 1), 1)
+                usable_w = day_col_w - 4
+                slot_w = usable_w / slot_count
+                base_x = grid_left + time_col_w + d_idx * day_col_w + 2
+                x0 = base_x + slot * slot_w
+                x1 = x0 + slot_w - 2
 
                 y0 = grid_top - header_h - ((start - lay.start_hour * 60) / ((lay.end_hour - lay.start_hour) * 60)) * body_h
                 y1 = grid_top - header_h - ((end - lay.start_hour * 60) / ((lay.end_hour - lay.start_hour) * 60)) * body_h
@@ -1156,6 +1164,7 @@ class SchedulePlannerApp:
                     f"{location_or_na(meeting)}"
                 )
                 tx = c.beginText(x0 + 3, y0 - 10)
+                tx.setFont("Helvetica", 7)
                 for line in text.split("\n"):
                     tx.textLine(line)
                 c.drawText(tx)
