@@ -3,7 +3,7 @@ import json
 import re
 from dataclasses import dataclass
 import tkinter as tk
-from tkinter import filedialog, messagebox, ttk
+from tkinter import colorchooser, filedialog, messagebox, ttk
 
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import landscape, letter
@@ -334,6 +334,9 @@ class SchedulePlannerApp:
         self.layout = Layout()
         self.data = copy.deepcopy(DEFAULT_JSON)
         self.selected_schedule_name = tk.StringVar(value=self.data["schedules"][0]["name"])
+        self.compare_alt_mode = tk.BooleanVar(value=False)
+        self.compare_color_a = "#8ecbff"
+        self.compare_color_b = "#ffcf8e"
 
         self.setup_ui()
         self.refresh_schedule_dropdown()
@@ -363,10 +366,14 @@ class SchedulePlannerApp:
             ("Smart Generate", self.smart_generate),
             ("Save JSON", self.save_json),
             ("Load JSON", self.load_json),
-            ("Export PDF", self.export_pdf),
         ]
         for label, cmd in buttons:
             ttk.Button(controls, text=label, command=cmd).pack(side="left", padx=3)
+        self.export_pdf_btn = ttk.Button(controls, text="Export PDF", command=self.export_pdf)
+        self.export_pdf_btn.pack(side="left", padx=3)
+        self.export_compare_pdf_btn = ttk.Button(controls, text="Export Compare PDF", command=self.export_pdf)
+        ttk.Checkbutton(controls, text="Compare Palette Mode", variable=self.compare_alt_mode, command=self.on_compare_mode_toggle).pack(side="left", padx=6)
+        ttk.Button(controls, text="Set Compare Colors", command=self.pick_compare_colors).pack(side="left", padx=3)
 
         main = ttk.Frame(self.root)
         main.pack(fill="both", expand=True, padx=8, pady=8)
@@ -385,6 +392,24 @@ class SchedulePlannerApp:
         height = self.layout.header_h + (self.layout.end_hour - self.layout.start_hour) * self.layout.row_h
         self.canvas = tk.Canvas(right, width=width, height=height, bg="white")
         self.canvas.pack(fill="both", expand=True)
+
+    def on_compare_mode_toggle(self):
+        if self.compare_alt_mode.get():
+            self.export_pdf_btn.pack_forget()
+            self.export_compare_pdf_btn.pack(side="left", padx=3)
+        else:
+            self.export_compare_pdf_btn.pack_forget()
+            self.export_pdf_btn.pack(side="left", padx=3)
+        self.redraw_views()
+
+    def pick_compare_colors(self):
+        c1 = colorchooser.askcolor(title="Select color for first compared schedule", color=self.compare_color_a)[1]
+        if c1:
+            self.compare_color_a = c1
+        c2 = colorchooser.askcolor(title="Select color for second compared schedule", color=self.compare_color_b)[1]
+        if c2:
+            self.compare_color_b = c2
+        self.redraw_views()
 
     def get_selected_schedule(self):
         selected = self.selected_schedule_name.get()
@@ -423,6 +448,7 @@ class SchedulePlannerApp:
             lines.append(f"Source schedules: {', '.join(schedule['source_schedules'])}\n")
         lines.append("-" * 50 + "\n")
 
+        is_compare_palette = self.compare_alt_mode.get() and str(schedule.get("name", "")).startswith("comparison_pair_")
         for idx, c in enumerate(classes, start=1):
             credits_total += int(c.get("credits", 0))
             meetings = expand_class_meetings(c)
@@ -432,8 +458,11 @@ class SchedulePlannerApp:
                 start_ampm = hhmm_to_ampm(m["start_time"])
                 end_ampm = hhmm_to_ampm(m["end_time"])
                 meeting_lines.append(f"   Meeting: {days} | {start_ampm} - {end_ampm} | {location_or_na(m)}")
+            header = f"{idx}. {c.get('class_name')}"
+            if not is_compare_palette:
+                header += f" ({c.get('section')})"
             rendered = (
-                f"{idx}. {c.get('class_name')} ({c.get('section')})\n"
+                header + "\n"
                 + "\n".join(meeting_lines) + "\n"
                 f"   Instructor: {c.get('teacher')}\n"
                 f"   Credits: {c.get('credits')}\n\n"
@@ -456,6 +485,28 @@ class SchedulePlannerApp:
         if start_idx:
             end_idx = f"{start_idx}+{len(marker)}c"
             self.text.tag_add("online_header", start_idx, end_idx)
+
+        if is_compare_palette:
+            sources = schedule.get("source_schedules", ["Schedule A", "Schedule B"])
+            self.text.insert(tk.END, f"\nLegend:\n■ {sources[0]}\n■ {sources[-1]}\n")
+            self.text.tag_configure("legend_a", background=self.compare_color_a)
+            self.text.tag_configure("legend_b", background=self.compare_color_b)
+            l1 = self.text.search("■", "1.0", tk.END)
+            if l1:
+                self.text.tag_add("legend_a", l1, f"{l1}+1c")
+                l2 = self.text.search("■", f"{l1}+1c", tk.END)
+                if l2:
+                    self.text.tag_add("legend_b", l2, f"{l2}+1c")
+
+            self.text.tag_configure("cmp_a", background=self.compare_color_a)
+            self.text.tag_configure("cmp_b", background=self.compare_color_b)
+            for idx, c in enumerate(classes, start=1):
+                marker_line = f"{idx}. {c.get('class_name')}"
+                pos = self.text.search(marker_line, "1.0", tk.END)
+                if pos:
+                    end = self.text.index(f"{pos} lineend")
+                    tag = "cmp_a" if c.get("_compare_source", 0) == 0 else "cmp_b"
+                    self.text.tag_add(tag, pos, end)
 
     def draw_grid(self):
         self.canvas.delete("all")
@@ -500,6 +551,8 @@ class SchedulePlannerApp:
         classes = schedule.get("classes", [])
         conflicts = find_conflicting_indices(classes)
         is_comparison_schedule = str(schedule.get("name", "")).startswith("comparison_pair_")
+        use_compare_palette = is_comparison_schedule and self.compare_alt_mode.get()
+        use_compare_palette = is_comparison_schedule and self.compare_alt_mode.get()
         day_to_idx = {d: i for i, d in enumerate(DAY_ORDER)}
         expanded_blocks = []
         for class_idx, cls in enumerate(classes):
@@ -538,12 +591,15 @@ class SchedulePlannerApp:
                 if y1 <= y0:
                     continue
 
-                fill = cls.get("_color", "#b7d8ff") if is_comparison_schedule else ("#ff7b7b" if class_idx in conflicts else cls.get("_color", "#b7d8ff"))
+                if use_compare_palette:
+                    fill = self.compare_color_a if cls.get("_compare_source", 0) == 0 else self.compare_color_b
+                else:
+                    fill = cls.get("_color", "#b7d8ff") if is_comparison_schedule else ("#ff7b7b" if class_idx in conflicts else cls.get("_color", "#b7d8ff"))
                 self.canvas.create_rectangle(x0, y0, x1, y1, fill=fill, outline="black")
                 label = (
                     f"{cls.get('class_name')}\n"
-                    f"{cls.get('section')}\n"
-                    f"{hhmm_to_ampm(meeting['start_time'])}-{hhmm_to_ampm(meeting['end_time'])}\n"
+                    + ("" if use_compare_palette else f"{cls.get('section')}\n")
+                    + f"{hhmm_to_ampm(meeting['start_time'])}-{hhmm_to_ampm(meeting['end_time'])}\n"
                     f"{location_or_na(meeting)}"
                 )
                 self.canvas.create_text((x0 + x1) / 2, (y0 + y1) / 2, text=label, font=("Arial", 8), width=max(20, slot_w - 6))
@@ -771,8 +827,10 @@ class SchedulePlannerApp:
             right_classes = copy.deepcopy(right.get("classes", []))
 
             for c in left_classes:
+                c["_compare_source"] = 0
                 c["_color"] = "#a9f5a9" if any(class_items_overlap(c, r) for r in right_classes) else "#ff9e9e"
             for c in right_classes:
+                c["_compare_source"] = 1
                 c["_color"] = "#a9f5a9" if any(class_items_overlap(c, l) for l in left_classes) else "#ff9e9e"
 
             return {
@@ -1045,6 +1103,7 @@ class SchedulePlannerApp:
         classes = schedule.get("classes", [])
         conflicts = find_conflicting_indices(classes)
         is_comparison_schedule = str(schedule.get("name", "")).startswith("comparison_pair_")
+        use_compare_palette = is_comparison_schedule and self.compare_alt_mode.get()
         day_to_idx = {d: i for i, d in enumerate(DAY_ORDER)}
 
         expanded_blocks = []
@@ -1076,7 +1135,10 @@ class SchedulePlannerApp:
                 if y0 <= y1:
                     continue
 
-                color_hex = cls.get("_color", "#b7d8ff") if is_comparison_schedule else ("#ff7b7b" if class_idx in conflicts else cls.get("_color", "#b7d8ff"))
+                if use_compare_palette:
+                    color_hex = self.compare_color_a if cls.get("_compare_source", 0) == 0 else self.compare_color_b
+                else:
+                    color_hex = cls.get("_color", "#b7d8ff") if is_comparison_schedule else ("#ff7b7b" if class_idx in conflicts else cls.get("_color", "#b7d8ff"))
                 try:
                     fill = colors.HexColor(color_hex)
                 except Exception:
@@ -1089,7 +1151,7 @@ class SchedulePlannerApp:
                 c.setFillColor(colors.black)
                 c.setFont("Helvetica", 7)
                 text = (
-                    f"{cls.get('class_name')} ({cls.get('section')})\n"
+                    f"{cls.get('class_name')}" + ("" if use_compare_palette else f" ({cls.get('section')})") + "\n"
                     f"{hhmm_to_ampm(meeting['start_time'])}-{hhmm_to_ampm(meeting['end_time'])}\n"
                     f"{location_or_na(meeting)}"
                 )
