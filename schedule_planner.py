@@ -4,6 +4,7 @@ import re
 from dataclasses import dataclass
 import tkinter as tk
 from tkinter import colorchooser, filedialog, messagebox, ttk
+from tkinter import simpledialog
 
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import landscape, letter
@@ -369,6 +370,7 @@ class SchedulePlannerApp:
         ]
         for label, cmd in buttons:
             ttk.Button(controls, text=label, command=cmd).pack(side="left", padx=3)
+        ttk.Button(controls, text="Rename", command=self.rename_current_schedule).pack(side="left", padx=3)
         self.export_pdf_btn = ttk.Button(controls, text="Export PDF", command=self.export_pdf)
         self.export_pdf_btn.pack(side="left", padx=3)
         self.export_compare_pdf_btn = ttk.Button(controls, text="Export Compare PDF", command=self.export_pdf)
@@ -409,6 +411,29 @@ class SchedulePlannerApp:
         c2 = colorchooser.askcolor(title="Select color for second compared schedule", color=self.compare_color_b)[1]
         if c2:
             self.compare_color_b = c2
+        self.redraw_views()
+
+    def rename_current_schedule(self):
+        schedule = self.get_selected_schedule()
+        if not schedule:
+            messagebox.showerror("Error", "No schedule selected.")
+            return
+
+        current_name = str(schedule.get("name", "")).strip() or "Untitled"
+        new_name = simpledialog.askstring("Rename Schedule", "New schedule name:", initialvalue=current_name, parent=self.root)
+        if new_name is None:
+            return
+        new_name = new_name.strip()
+        if not new_name:
+            messagebox.showerror("Error", "Schedule name cannot be empty.")
+            return
+        if new_name != current_name and any(s.get("name") == new_name for s in self.data.get("schedules", [])):
+            messagebox.showerror("Error", "A schedule with that name already exists.")
+            return
+
+        schedule["name"] = new_name
+        self.selected_schedule_name.set(new_name)
+        self.refresh_schedule_dropdown()
         self.redraw_views()
 
     def get_selected_schedule(self):
