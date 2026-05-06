@@ -14,7 +14,7 @@
       "classes": [
         {
           "class_name": "MAC2313",
-          "section": "0003",
+          "section": "0002",
           "days": [
             "M",
             "T",
@@ -24,7 +24,7 @@
           "start_time": "11:35",
           "end_time": "12:55",
           "location": "MCH 0301",
-          "teacher": "",
+          "teacher": "Ye Chen",
           "credits": 5,
           "meetings": [
             {
@@ -34,8 +34,8 @@
                 "W",
                 "Th"
               ],
-              "start_time": "11:35",
-              "end_time": "12:55",
+              "start_time": "9:45",
+              "end_time": "11:05",
               "location": "MCH 0301"
             }
           ],
@@ -429,7 +429,7 @@
         },
         {
           "class_name": "MAC2313",
-          "section": "001",
+          "section": "0001",
           "days": [
             "M",
             "W",
