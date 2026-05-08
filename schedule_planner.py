@@ -4,6 +4,7 @@ import re
 from dataclasses import dataclass
 import tkinter as tk
 from tkinter import colorchooser, filedialog, messagebox, ttk
+from tkinter import simpledialog
 
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import landscape, letter
@@ -224,6 +225,8 @@ def normalize_data_model(data: dict) -> dict:
         sources = raw_schedule.get("source_schedules")
         if isinstance(sources, list):
             schedule["source_schedules"] = [str(s).strip() for s in sources if str(s).strip()]
+        if raw_schedule.get("is_comparison_pair"):
+            schedule["is_comparison_pair"] = True
         cleaned_schedules.append(schedule)
 
     if not cleaned_schedules:
@@ -342,6 +345,12 @@ class SchedulePlannerApp:
         self.refresh_schedule_dropdown()
         self.redraw_views()
 
+    @staticmethod
+    def is_comparison_pair_schedule(schedule: dict | None) -> bool:
+        if not schedule:
+            return False
+        return bool(schedule.get("is_comparison_pair")) or str(schedule.get("name", "")).startswith("comparison_pair_")
+
     def setup_ui(self):
         controls = ttk.Frame(self.root)
         controls.pack(fill="x", padx=8, pady=8)
@@ -369,6 +378,7 @@ class SchedulePlannerApp:
         ]
         for label, cmd in buttons:
             ttk.Button(controls, text=label, command=cmd).pack(side="left", padx=3)
+        ttk.Button(controls, text="Rename", command=self.rename_current_schedule).pack(side="left", padx=3)
         self.export_pdf_btn = ttk.Button(controls, text="Export PDF", command=self.export_pdf)
         self.export_pdf_btn.pack(side="left", padx=3)
         self.export_compare_pdf_btn = ttk.Button(controls, text="Export Compare PDF", command=self.export_pdf)
@@ -411,6 +421,29 @@ class SchedulePlannerApp:
             self.compare_color_b = c2
         self.redraw_views()
 
+    def rename_current_schedule(self):
+        schedule = self.get_selected_schedule()
+        if not schedule:
+            messagebox.showerror("Error", "No schedule selected.")
+            return
+
+        current_name = str(schedule.get("name", "")).strip() or "Untitled"
+        new_name = simpledialog.askstring("Rename Schedule", "New schedule name:", initialvalue=current_name, parent=self.root)
+        if new_name is None:
+            return
+        new_name = new_name.strip()
+        if not new_name:
+            messagebox.showerror("Error", "Schedule name cannot be empty.")
+            return
+        if new_name != current_name and any(s.get("name") == new_name for s in self.data.get("schedules", [])):
+            messagebox.showerror("Error", "A schedule with that name already exists.")
+            return
+
+        schedule["name"] = new_name
+        self.selected_schedule_name.set(new_name)
+        self.refresh_schedule_dropdown()
+        self.redraw_views()
+
     def get_selected_schedule(self):
         selected = self.selected_schedule_name.get()
         for schedule in self.data.get("schedules", []):
@@ -448,7 +481,7 @@ class SchedulePlannerApp:
             lines.append(f"Source schedules: {', '.join(schedule['source_schedules'])}\n")
         lines.append("-" * 50 + "\n")
 
-        is_compare_palette = self.compare_alt_mode.get() and str(schedule.get("name", "")).startswith("comparison_pair_")
+        is_compare_palette = self.compare_alt_mode.get() and self.is_comparison_pair_schedule(schedule)
         for idx, c in enumerate(classes, start=1):
             credits_total += int(c.get("credits", 0))
             meetings = expand_class_meetings(c)
@@ -550,7 +583,7 @@ class SchedulePlannerApp:
 
         classes = schedule.get("classes", [])
         conflicts = find_conflicting_indices(classes)
-        is_comparison_schedule = str(schedule.get("name", "")).startswith("comparison_pair_")
+        is_comparison_schedule = self.is_comparison_pair_schedule(schedule)
         use_compare_palette = is_comparison_schedule and self.compare_alt_mode.get()
         use_compare_palette = is_comparison_schedule and self.compare_alt_mode.get()
         day_to_idx = {d: i for i, d in enumerate(DAY_ORDER)}
@@ -835,6 +868,7 @@ class SchedulePlannerApp:
 
             return {
                 "name": name,
+                "is_comparison_pair": True,
                 "source_schedules": [left.get("name", "left"), right.get("name", "right")],
                 "classes": left_classes + right_classes,
             }
@@ -1102,7 +1136,7 @@ class SchedulePlannerApp:
 
         classes = schedule.get("classes", [])
         conflicts = find_conflicting_indices(classes)
-        is_comparison_schedule = str(schedule.get("name", "")).startswith("comparison_pair_")
+        is_comparison_schedule = self.is_comparison_pair_schedule(schedule)
         use_compare_palette = is_comparison_schedule and self.compare_alt_mode.get()
         day_to_idx = {d: i for i, d in enumerate(DAY_ORDER)}
 
@@ -1114,7 +1148,9 @@ class SchedulePlannerApp:
                 block["_class_ref"] = cls
                 expanded_blocks.append(block)
 
-        for meeting in expanded_blocks:
+        day_layouts = {day: compute_day_side_by_side_layout(expanded_blocks, day) for day in DAY_ORDER}
+
+        for block_idx, meeting in enumerate(expanded_blocks):
             cls = meeting["_class_ref"]
             class_idx = meeting["_class_idx"]
             start = time_to_minutes(meeting["start_time"])
@@ -1123,8 +1159,14 @@ class SchedulePlannerApp:
                 if d not in day_to_idx:
                     continue
                 d_idx = day_to_idx[d]
-                x0 = grid_left + time_col_w + d_idx * day_col_w + 2
-                x1 = x0 + day_col_w - 4
+                placements, cluster_widths = day_layouts[d]
+                slot, cluster = placements.get(block_idx, (0, 0))
+                slot_count = max(cluster_widths.get(cluster, 1), 1)
+                usable_w = day_col_w - 4
+                slot_w = usable_w / slot_count
+                base_x = grid_left + time_col_w + d_idx * day_col_w + 2
+                x0 = base_x + slot * slot_w
+                x1 = x0 + slot_w - 2
 
                 y0 = grid_top - header_h - ((start - lay.start_hour * 60) / ((lay.end_hour - lay.start_hour) * 60)) * body_h
                 y1 = grid_top - header_h - ((end - lay.start_hour * 60) / ((lay.end_hour - lay.start_hour) * 60)) * body_h
@@ -1156,6 +1198,7 @@ class SchedulePlannerApp:
                     f"{location_or_na(meeting)}"
                 )
                 tx = c.beginText(x0 + 3, y0 - 10)
+                tx.setFont("Helvetica", 7)
                 for line in text.split("\n"):
                     tx.textLine(line)
                 c.drawText(tx)
