@@ -1,85 +1,162 @@
-# Build a standalone Windows `.exe` (no Python required on target machine)
+# Build standalone one-file apps (Windows, Debian Linux, and macOS)
 
-This project is a single-file Tkinter app (`schedule_planner.py`).
-To create a Windows executable that runs on a Windows PC **without installing Python**, build it on a Windows machine with PyInstaller.
+This project is a single-file Tkinter app: `schedule_planner.py`.
+You can package it as a **single runnable file** with PyInstaller so end users do not need to install Python.
 
-> Important: Build on the same OS you target. A Linux-built executable will not run on Windows.
+> Build on the same OS you target:
+> - Windows build for Windows
+> - Linux build for Linux
+> - macOS build for macOS
 
-## 1) On a Windows machine, install Python
+Cross-building is not supported for reliable desktop bundles.
 
-1. Download Python 3.11+ from https://www.python.org/downloads/windows/
-2. During install, check **Add Python to PATH**.
-3. Open **Command Prompt** and verify:
+---
+
+## 1) Install build prerequisites
+
+### Windows
+1. Install Python 3.11+ from: https://www.python.org/downloads/windows/
+2. Check **Add Python to PATH** during install.
+3. In Command Prompt:
 
 ```bat
 python --version
 pip --version
+pip install --upgrade pip pyinstaller reportlab
 ```
 
-## 2) Get this project and install build dependency
+### Debian / Ubuntu Linux
+Install Python + Tk support + build tools:
 
-From Command Prompt in the project folder:
-
-```bat
-pip install --upgrade pip
-pip install pyinstaller reportlab
+```bash
+sudo apt update
+sudo apt install -y python3 python3-pip python3-tk tk-dev build-essential
+python3 -m pip install --user --upgrade pip pyinstaller reportlab
 ```
 
-## 3) Build the `.exe`
+If `pyinstaller` is not in PATH, use `python3 -m PyInstaller` in commands below.
 
-From the folder containing `schedule_planner.py`:
+### macOS
+1. Install Xcode Command Line Tools:
+
+```bash
+xcode-select --install
+```
+
+2. Install Python (recommended via Homebrew):
+
+```bash
+brew install python tcl-tk
+python3 -m pip install --upgrade pip pyinstaller reportlab
+```
+
+---
+
+## 2) Build one-file app
+
+From the repository root (same folder as `schedule_planner.py`):
+
+### Windows `.exe`
 
 ```bat
 pyinstaller --noconfirm --clean --windowed --onefile --name SchedulePlanner schedule_planner.py
 ```
 
-## 4) Find the executable
-
-After build completes, use:
-
+Output:
 - `dist\SchedulePlanner.exe`
 
-Copy that `.exe` to any Windows machine and run it directly.
-No Python installation is needed on the target machine.
+### Debian/Linux single executable
 
-## 5) Optional: Include app icon
+```bash
+pyinstaller --noconfirm --clean --onefile --name schedule-planner schedule_planner.py
+```
 
-If you have `app.ico` in the repo root:
+Output:
+- `dist/schedule-planner`
+
+Make it executable (if needed):
+
+```bash
+chmod +x dist/schedule-planner
+```
+
+### macOS app binary (one-file executable)
+
+```bash
+pyinstaller --noconfirm --clean --windowed --onefile --name SchedulePlanner schedule_planner.py
+```
+
+Output:
+- `dist/SchedulePlanner`
+
+You can run it directly:
+
+```bash
+./dist/SchedulePlanner
+```
+
+---
+
+## 3) Distribution notes
+
+- **Windows**: ship `SchedulePlanner.exe`.
+- **Debian/Linux**: ship `schedule-planner` built on a compatible distro version (prefer older baseline distro for wider glibc compatibility).
+- **macOS**: ship `SchedulePlanner` built on the same major macOS version family as target users.
+
+For maximum compatibility, build separately per OS (and architecture, e.g., x86_64 vs arm64).
+
+---
+
+## 4) Optional icon
+
+If you have icon files in repo root:
+
+- Windows: `app.ico`
+- macOS: `app.icns`
+
+Examples:
 
 ```bat
 pyinstaller --noconfirm --clean --windowed --onefile --name SchedulePlanner --icon app.ico schedule_planner.py
 ```
 
-## 6) Optional: Reduce antivirus false positives
-
-Some one-file executables can trigger false positives. If needed:
-
-- Rebuild without `--onefile` (folder mode):
-
-```bat
-pyinstaller --noconfirm --clean --windowed --name SchedulePlanner schedule_planner.py
+```bash
+pyinstaller --noconfirm --clean --windowed --onefile --name SchedulePlanner --icon app.icns schedule_planner.py
 ```
 
-- Code-sign `SchedulePlanner.exe`.
+---
 
-## 7) Troubleshooting
+## 5) Troubleshooting
 
-- **`pyinstaller` not found**
-  - Run with module form: `python -m PyInstaller ...`
-- **Missing module at runtime**
-  - Reinstall dependencies and rebuild:
-    `pip install --upgrade pyinstaller reportlab`
-- **Executable opens then immediately closes**
-  - Build once without `--windowed` to see console errors:
+- **`pyinstaller: command not found`**
+  - Use module form:
+    - Linux/macOS: `python3 -m PyInstaller ...`
+    - Windows: `python -m PyInstaller ...`
 
-```bat
-pyinstaller --noconfirm --clean --onefile --name SchedulePlanner schedule_planner.py
-```
+- **App fails to launch on Linux due to GLIBC version**
+  - Build on an older Debian/Ubuntu base (or in Docker) to improve compatibility with older systems.
 
-Then run `dist\SchedulePlanner.exe` from Command Prompt to read the traceback.
+- **macOS Gatekeeper warning**
+  - Right-click → Open once, or code-sign/notarize for broader distribution.
 
-## 8) Reproducible quick build command
+- **Need debug output**
+  - Rebuild without `--windowed` and run from terminal to inspect errors.
 
+---
+
+## 6) Quick commands
+
+### Windows
 ```bat
 pip install --upgrade pip pyinstaller reportlab && pyinstaller --noconfirm --clean --windowed --onefile --name SchedulePlanner schedule_planner.py
+```
+
+### Debian/Linux
+```bash
+python3 -m pip install --user --upgrade pip pyinstaller reportlab && python3 -m PyInstaller --noconfirm --clean --onefile --name schedule-planner schedule_planner.py
+```
+
+### macOS
+```bash
+python3 -m pip install --upgrade pip pyinstaller reportlab && python3 -m PyInstaller --noconfirm --clean --windowed --onefile --name SchedulePlanner schedule_planner.py
 ```
