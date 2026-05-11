@@ -24,7 +24,7 @@
           "start_time": "11:35",
           "end_time": "12:55",
           "location": "MCH 0301",
-          "teacher": "Ye Chen",
+          "teacher": "Pervez Ali",
           "credits": 5,
           "meetings": [
             {
@@ -34,8 +34,8 @@
                 "W",
                 "Th"
               ],
-              "start_time": "9:45",
-              "end_time": "11:05",
+              "start_time": "11:35",
+              "end_time": "12:55",
               "location": "MCH 0301"
             }
           ],

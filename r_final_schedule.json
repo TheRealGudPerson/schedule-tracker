@@ -8,11 +8,11 @@
                     "class_name": "MAC2313",
                     "section": "0002",
                     "days": ["M", "T", "W", "Th"],
-                    "start_time": "09:45",
-                    "end_time": "11:05",
+                    "start_time": "11:35",
+                    "end_time": "12:55",
                     "location": "MCH 0301",
                     "_color": "#72ddf7",
-                    "teacher": "Ye Chen",
+                    "teacher": "Pervez Ali",
                     "credits": 5
                 },
                 {
