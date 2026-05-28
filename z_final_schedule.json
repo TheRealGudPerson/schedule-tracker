@@ -1,0 +1,184 @@
+{
+  "schedules": [
+    {
+      "name": "Zainab Summer 2026",
+      "source_schedules": [],
+      "classes": [
+        {
+          "class_name": "PHY2048C",
+          "section": "0006",
+          "days": ["M", "W", "Th"],
+          "start_time": "13:20",
+          "end_time": "15:00",
+          "location": "UPL 0101",
+          "teacher": "",
+          "credits": 5,
+          "_color": "#fdfd96",
+          "meetings": [
+            {
+              "days": ["M", "W", "Th"],
+              "start_time": "13:20",
+              "end_time": "15:00",
+              "location": "UPL 0101"
+            },
+            {
+              "days": ["Th"],
+              "start_time": "9:30",
+              "end_time": "12:30",
+              "location": "MCH 0315"
+            }
+          ]
+        },
+        {
+          "class_name": "CHM1046",
+          "section": "0001",
+          "days": ["M", "W", "F"],
+          "start_time": "11:35",
+          "end_time": "12:40",
+          "location": "FLH 0255",
+          "teacher": "Stephanie Dillon",
+          "credits": 3,
+          "_color": "#fdfd96",
+          "meetings": [
+            {
+              "days": ["M", "W", "F"],
+              "start_time": "11:35",
+              "end_time": "12:40",
+              "location": "FLH 0255"
+            },
+            {
+              "days": ["M"],
+              "start_time": "16:00",
+              "end_time": "16:50",
+              "location": "HTL 0213"
+            }
+          ]
+        },
+        {
+          "class_name": "BSC2011L",
+          "section": "0003",
+          "days": ["T"],
+          "start_time": "9:30",
+          "end_time": "12:15",
+          "location": "KIN 1071",
+          "teacher": "Geoffrey Brown, David McNutt",
+          "_color": "#fdfd96",
+          "credits": 1
+        }
+      ]
+    },
+    {
+      "name": "Zainab Fall 2026",
+      "source_schedules": [],
+      "classes": [
+        {
+          "class_name": "PHY2049C",
+          "section": "0004",
+          "days": ["M", "W", "T", "Th"],
+          "start_time": "11:30",
+          "end_time": "15:40",
+          "location": "MCH 0315 / UPL 0101",
+          "teacher": "Rachel Yohay",
+          "_color": "#fdfd96",
+          "credits": 5,
+          "meetings": [
+            {
+              "days": ["M", "W"],
+              "start_time": "13:20",
+              "end_time": "15:40",
+              "location": "MCH 0315"
+            },
+            {
+              "days": ["T", "Th"],
+              "start_time": "11:30",
+              "end_time": "12:45",
+              "location": "UPL 0101"
+            }
+          ]
+        },
+        {
+          "class_name": "CHM3120",
+          "section": "0008",
+          "days": ["M", "W", "F"],
+          "start_time": "09:20",
+          "end_time": "10:10",
+          "location": "HTL 0213",
+          "teacher": "Xiangpeng Li",
+          "credits": 0,
+          "_color": "#fdfd96",
+          "meetings": [
+            {
+              "days": ["M", "W", "F"],
+              "start_time": "09:20",
+              "end_time": "10:10",
+              "location": "HTL 0213"
+            }
+          ]
+        },
+        {
+          "class_name": "CHM3120",
+          "section": "0009",
+          "days": ["F"],
+          "start_time": "11:00",
+          "end_time": "11:50",
+          "location": "HTL 0213",
+          "teacher": "Xiangpeng Li",
+          "credits": 3,
+          "_color": "#fdfd96",
+          "meetings": [
+            {
+              "days": ["F"],
+              "start_time": "11:00",
+              "end_time": "11:50",
+              "location": "HTL 0213"
+            }
+          ]
+        },
+        {
+          "class_name": "MAC2313",
+          "section": "001",
+          "days": ["M", "W", "T", "Th"],
+          "start_time": "08:00",
+          "end_time": "09:15",
+          "location": "HCB 0209",
+          "teacher": "",
+          "credits": 5,
+          "_color": "#fdfd96",
+          "meetings": [
+            {
+              "days": ["M", "W"],
+              "start_time": "08:00",
+              "end_time": "09:00",
+              "location": "HCB 0209"
+            },
+            {
+              "days": ["T", "Th"],
+              "start_time": "08:00",
+              "end_time": "09:15",
+              "location": "HCB 0209"
+            }
+          ]
+        },
+        {
+          "class_name": "CHM3120L",
+          "section": "0006",
+          "days": ["Th"],
+          "start_time": "13:00",
+          "end_time": "16:45",
+          "location": "HTL 0440",
+          "teacher": "Zhitong Greenwell",
+          "credits": 1,
+          "_color": "#fdfd96",
+          "meetings": [
+            {
+              "days": ["Th"],
+              "start_time": "13:00",
+              "end_time": "16:45",
+              "location": "HTL 0440"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
