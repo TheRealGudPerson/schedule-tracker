@@ -1,0 +1,1 @@
+This version of the application was built on Linux Mint 22.3, using the XFCE desktop environment. It should work with all Ubuntu-based Linux distributions, along with any distributions that allow .deb app packages
