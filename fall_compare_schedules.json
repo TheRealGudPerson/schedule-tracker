@@ -1,0 +1,236 @@
+{
+    "schedules": [
+        {
+            "name": "Fall Compare - PEM1121 0008 + PEM1131 0003",
+            "source_schedules": [
+                "Fall Schedule"
+            ],
+            "classes": [
+                {
+                    "class_name": "PEM1131",
+                    "section": "0003",
+                    "days": [
+                        "M",
+                        "W"
+                    ],
+                    "start_time": "10:40",
+                    "end_time": "11:30",
+                    "location": "TUL B014",
+                    "teacher": "Kristopher White",
+                    "credits": 1,
+                    "_color": "#77DD77",
+                    "meetings": [
+                        {
+                            "days": [
+                                "M",
+                                "W"
+                            ],
+                            "start_time": "10:40",
+                            "end_time": "11:30",
+                            "location": "TUL B014"
+                        }
+                    ]
+                },
+                {
+                    "class_name": "PEM1121",
+                    "section": "0008",
+                    "days": [
+                        "M",
+                        "W"
+                    ],
+                    "start_time": "16:50",
+                    "end_time": "17:40",
+                    "location": "TUL B005",
+                    "teacher": "Kristopher White",
+                    "credits": 1,
+                    "_color": "#B19CD9",
+                    "meetings": [
+                        {
+                            "days": [
+                                "M",
+                                "W"
+                            ],
+                            "start_time": "16:50",
+                            "end_time": "17:40",
+                            "location": "TUL B005"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "Fall Compare - PEM1121 0009 + PEM1131 0003",
+            "source_schedules": [
+                "Fall Schedule"
+            ],
+            "classes": [
+                {
+                    "class_name": "PEM1131",
+                    "section": "0003",
+                    "days": [
+                        "M",
+                        "W"
+                    ],
+                    "start_time": "10:40",
+                    "end_time": "11:30",
+                    "location": "TUL B014",
+                    "teacher": "Kristopher White",
+                    "credits": 1,
+                    "_color": "#77DD77",
+                    "meetings": [
+                        {
+                            "days": [
+                                "M",
+                                "W"
+                            ],
+                            "start_time": "10:40",
+                            "end_time": "11:30",
+                            "location": "TUL B014"
+                        }
+                    ]
+                },
+                {
+                    "class_name": "PEM1121",
+                    "section": "0009",
+                    "days": [
+                        "M",
+                        "W"
+                    ],
+                    "start_time": "16:50",
+                    "end_time": "17:40",
+                    "location": "TUL B016",
+                    "teacher": "Kristopher White",
+                    "credits": 1,
+                    "_color": "#B19CD9",
+                    "meetings": [
+                        {
+                            "days": [
+                                "M",
+                                "W"
+                            ],
+                            "start_time": "16:50",
+                            "end_time": "17:40",
+                            "location": "TUL B016"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "Fall Compare - PEM1148 0001 + PEM1131 0003",
+            "source_schedules": [
+                "Fall Schedule"
+            ],
+            "classes": [
+                {
+                    "class_name": "PEM1131",
+                    "section": "0003",
+                    "days": [
+                        "M",
+                        "W"
+                    ],
+                    "start_time": "10:40",
+                    "end_time": "11:30",
+                    "location": "TUL B014",
+                    "teacher": "Kristopher White",
+                    "credits": 1,
+                    "_color": "#77DD77",
+                    "meetings": [
+                        {
+                            "days": [
+                                "M",
+                                "W"
+                            ],
+                            "start_time": "10:40",
+                            "end_time": "11:30",
+                            "location": "TUL B014"
+                        }
+                    ]
+                },
+                {
+                    "class_name": "PEM1148",
+                    "section": "0001",
+                    "days": [
+                        "M",
+                        "W"
+                    ],
+                    "start_time": "10:40",
+                    "end_time": "11:30",
+                    "location": "TUL 2018",
+                    "teacher": "Kristopher White",
+                    "credits": 1,
+                    "_color": "#B19CD9",
+                    "meetings": [
+                        {
+                            "days": [
+                                "M",
+                                "W"
+                            ],
+                            "start_time": "10:40",
+                            "end_time": "11:30",
+                            "location": "TUL 2018"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "Fall Compare - PEM1148 0002 + PEM1131 0003",
+            "source_schedules": [
+                "Fall Schedule"
+            ],
+            "classes": [
+                {
+                    "class_name": "PEM1131",
+                    "section": "0003",
+                    "days": [
+                        "M",
+                        "W"
+                    ],
+                    "start_time": "10:40",
+                    "end_time": "11:30",
+                    "location": "TUL B014",
+                    "teacher": "Kristopher White",
+                    "credits": 1,
+                    "_color": "#77DD77",
+                    "meetings": [
+                        {
+                            "days": [
+                                "M",
+                                "W"
+                            ],
+                            "start_time": "10:40",
+                            "end_time": "11:30",
+                            "location": "TUL B014"
+                        }
+                    ]
+                },
+                {
+                    "class_name": "PEM1148",
+                    "section": "0002",
+                    "days": [
+                        "M",
+                        "W"
+                    ],
+                    "start_time": "12:00",
+                    "end_time": "12:50",
+                    "location": "TUL 2012",
+                    "teacher": "Kristopher White",
+                    "credits": 1,
+                    "_color": "#B19CD9",
+                    "meetings": [
+                        {
+                            "days": [
+                                "M",
+                                "W"
+                            ],
+                            "start_time": "12:00",
+                            "end_time": "12:50",
+                            "location": "TUL 2012"
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}
