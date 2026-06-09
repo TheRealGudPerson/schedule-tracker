@@ -1,0 +1,3 @@
+([('SchedulePlanner',
+   '/Users/cryostaticbiker/Downloads/schedule-tracker/macOS_build/dist/SchedulePlanner',
+   'EXECUTABLE')],)
