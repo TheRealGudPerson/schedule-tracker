@@ -1,0 +1,1 @@
+This version of the app was built on macOS Tahoe, version 26.5.

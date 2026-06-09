@@ -1,0 +1,1 @@
+This application build was compiled on Windows 11. It should work with Windows 10 as well.
