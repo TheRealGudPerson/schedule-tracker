@@ -552,8 +552,8 @@ class SchedulePlannerApp:
         conflicts = find_conflicting_indices(classes)
         is_comparison_schedule = str(schedule.get("name", "")).startswith("comparison_pair_")
         use_compare_palette = is_comparison_schedule and self.compare_alt_mode.get()
-        use_compare_palette = is_comparison_schedule and self.compare_alt_mode.get()
         day_to_idx = {d: i for i, d in enumerate(DAY_ORDER)}
+        
         expanded_blocks = []
         for class_idx, cls in enumerate(classes):
             for meeting in expand_class_meetings(cls):
@@ -594,10 +594,10 @@ class SchedulePlannerApp:
                 if use_compare_palette:
                     fill = self.compare_color_a if cls.get("_compare_source", 0) == 0 else self.compare_color_b
                 else:
-                    fill = cls.get("_color", "#b7d8ff") if is_comparison_schedule else ("#ff7b7b" if class_idx in conflicts else cls.get("_color", "#b7d8ff"))
+                    fill = cls.get("_color", "#b7d8ff") if is_comparison_schedule else (cls.get("_color", "#b7d8ff"))
                 self.canvas.create_rectangle(x0, y0, x1, y1, fill=fill, outline="black")
                 label = (
-                    f"{cls.get('class_name')}\n"
+                    f"{cls.get('class_name')} - "
                     + ("" if use_compare_palette else f"{cls.get('section')}\n")
                     + f"{hhmm_to_ampm(meeting['start_time'])}-{hhmm_to_ampm(meeting['end_time'])}\n"
                     f"{location_or_na(meeting)}"
@@ -1051,7 +1051,7 @@ class SchedulePlannerApp:
         margin = 30
         title_y = page_h - margin
         c.setFont("Helvetica-Bold", 16)
-        c.drawCentredString(page_w / 2, title_y, f"Schedule: {schedule.get('name', 'Untitled')}")
+        c.drawCentredString(page_w / 2, title_y, f"{schedule.get('name', 'Untitled')}")
 
         grid_top = title_y - 25
         grid_bottom = margin
@@ -1114,7 +1114,9 @@ class SchedulePlannerApp:
                 block["_class_ref"] = cls
                 expanded_blocks.append(block)
 
-        for meeting in expanded_blocks:
+        day_layouts = {day: compute_day_side_by_side_layout(expanded_blocks, day) for day in DAY_ORDER}
+
+        for block_idx, meeting in enumerate(expanded_blocks):
             cls = meeting["_class_ref"]
             class_idx = meeting["_class_idx"]
             start = time_to_minutes(meeting["start_time"])
@@ -1123,8 +1125,17 @@ class SchedulePlannerApp:
                 if d not in day_to_idx:
                     continue
                 d_idx = day_to_idx[d]
-                x0 = grid_left + time_col_w + d_idx * day_col_w + 2
-                x1 = x0 + day_col_w - 4
+
+                placements, cluster_widths = day_layouts[d]
+                slot, cluster = placements.get(block_idx, (0, 0))
+                slot_count = max(cluster_widths.get(cluster, 1), 1)
+
+                usable_w = day_col_w - 4
+                slot_w = usable_w / slot_count
+                
+                base_x = grid_left + time_col_w + d_idx * day_col_w + 2
+                x0 = base_x + slot * slot_w
+                x1 = x0 + slot_w - 2
 
                 y0 = grid_top - header_h - ((start - lay.start_hour * 60) / ((lay.end_hour - lay.start_hour) * 60)) * body_h
                 y1 = grid_top - header_h - ((end - lay.start_hour * 60) / ((lay.end_hour - lay.start_hour) * 60)) * body_h
@@ -1138,7 +1149,7 @@ class SchedulePlannerApp:
                 if use_compare_palette:
                     color_hex = self.compare_color_a if cls.get("_compare_source", 0) == 0 else self.compare_color_b
                 else:
-                    color_hex = cls.get("_color", "#b7d8ff") if is_comparison_schedule else ("#ff7b7b" if class_idx in conflicts else cls.get("_color", "#b7d8ff"))
+                    color_hex = cls.get("_color", "#b7d8ff") if is_comparison_schedule else (cls.get("_color", "#b7d8ff"))
                 try:
                     fill = colors.HexColor(color_hex)
                 except Exception:
@@ -1151,8 +1162,9 @@ class SchedulePlannerApp:
                 c.setFillColor(colors.black)
                 c.setFont("Helvetica", 7)
                 text = (
-                    f"{cls.get('class_name')}" + ("" if use_compare_palette else f" ({cls.get('section')})") + "\n"
-                    f"{hhmm_to_ampm(meeting['start_time'])}-{hhmm_to_ampm(meeting['end_time'])}\n"
+                    f"{cls.get('class_name')} - "
+                    + ("" if use_compare_palette else f"{cls.get('section')}\n")
+                    + f"{hhmm_to_ampm(meeting['start_time'])}-{hhmm_to_ampm(meeting['end_time'])}\n"
                     f"{location_or_na(meeting)}"
                 )
                 tx = c.beginText(x0 + 3, y0 - 10)
